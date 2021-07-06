@@ -7,9 +7,15 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kz.aspan.doodle.data.remote.api.SetupApi
+import kz.aspan.doodle.util.Constants.HTTP_BASE_URL
+import kz.aspan.doodle.util.Constants.HTTP_BASE_URL_LOCALHOST
+import kz.aspan.doodle.util.Constants.USE_LOCALHOST
 import kz.aspan.doodle.util.DispatcherProvider
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -24,6 +30,17 @@ class AppModule {
                 level = HttpLoggingInterceptor.Level.BODY
             })
             .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideSetupApi(okHttpClient: OkHttpClient): SetupApi {
+        return Retrofit.Builder()
+            .baseUrl(if (USE_LOCALHOST) HTTP_BASE_URL_LOCALHOST else HTTP_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+            .create(SetupApi::class.java)
     }
 
     @Singleton
