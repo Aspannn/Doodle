@@ -36,18 +36,18 @@ class DefaultSetupRepository @Inject constructor(
     }
 
     override suspend fun getRooms(searchQuery: String): Resource<List<Room>> {
-        if(!context.checkForInternetConnection()) {
+        if (!context.checkForInternetConnection()) {
             return Resource.Error(context.getString(R.string.error_internet_turned_off))
         }
         val response = try {
             setupApi.getRooms(searchQuery)
-        } catch(e: HttpException) {
+        } catch (e: HttpException) {
             return Resource.Error(context.getString(R.string.error_http))
-        } catch(e: IOException) {
+        } catch (e: IOException) {
             return Resource.Error(context.getString(R.string.check_internet_connection))
         }
 
-        return if(response.isSuccessful && response.body() != null) {
+        return if (response.isSuccessful && response.body() != null) {
             Resource.Success(response.body()!!)
         } else {
             Resource.Error(context.getString(R.string.error_unknown))
@@ -55,20 +55,20 @@ class DefaultSetupRepository @Inject constructor(
     }
 
     override suspend fun joinRoom(username: String, roomName: String): Resource<Unit> {
-        if(!context.checkForInternetConnection()) {
+        if (!context.checkForInternetConnection()) {
             return Resource.Error(context.getString(R.string.error_internet_turned_off))
         }
         val response = try {
             setupApi.joinRoom(username, roomName)
-        } catch(e: HttpException) {
+        } catch (e: HttpException) {
             return Resource.Error(context.getString(R.string.error_http))
-        } catch(e: IOException) {
+        } catch (e: IOException) {
             return Resource.Error(context.getString(R.string.check_internet_connection))
         }
 
-        return if(response.isSuccessful && response.body()?.successful == true) {
+        return if (response.isSuccessful && response.body()?.successful == true) {
             Resource.Success(Unit)
-        } else if(response.body()?.successful == false) {
+        } else if (response.body()?.successful == false) {
             Resource.Error(response.body()!!.message!!)
         } else {
             Resource.Error(context.getString(R.string.error_unknown))
