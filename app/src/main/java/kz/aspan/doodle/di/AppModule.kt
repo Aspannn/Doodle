@@ -11,6 +11,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kz.aspan.doodle.data.remote.api.SetupApi
 import kz.aspan.doodle.data.remote.ws.Room
+import kz.aspan.doodle.repository.DefaultSetupRepository
+import kz.aspan.doodle.repository.SetupRepository
 import kz.aspan.doodle.util.Constants.HTTP_BASE_URL
 import kz.aspan.doodle.util.Constants.HTTP_BASE_URL_LOCALHOST
 import kz.aspan.doodle.util.Constants.USE_LOCALHOST
@@ -24,6 +26,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModule {
+
+    @Singleton
+    @Provides
+    fun provideSetupRepository(
+        setupApi: SetupApi,
+        @ApplicationContext context: Context
+    ): SetupRepository = DefaultSetupRepository(setupApi, context)
 
     @Singleton
     @Provides

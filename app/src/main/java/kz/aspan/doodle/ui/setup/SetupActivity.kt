@@ -3,10 +3,10 @@ package kz.aspan.doodle.ui.setup
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
-import kz.aspan.doodle.R
+import dagger.hilt.android.AndroidEntryPoint
 import kz.aspan.doodle.databinding.ActivitySetupBinding
 
-//@AndroidEntryPoint
+@AndroidEntryPoint
 class SetupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySetupBinding

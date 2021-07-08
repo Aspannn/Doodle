@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SetupViewModel @Inject constructor(
-    private val repository: DefaultSetupRepository,
+    private val repository: SetupRepository,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
