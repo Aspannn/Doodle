@@ -14,7 +14,7 @@ class RoomAdapter @Inject constructor() : RecyclerView.Adapter<RoomAdapter.RoomV
 
     class RoomViewHolder(val binding: ItemRoomBinding) : RecyclerView.ViewHolder(binding.root)
 
-    suspend fun updateViewHolder(newDataset: List<Room>) = withContext(Dispatchers.Default) {
+    suspend fun updateDataset(newDataset: List<Room>) = withContext(Dispatchers.Default) {
         val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize(): Int {
                 return rooms.size

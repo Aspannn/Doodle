@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kz.aspan.doodle.data.remote.ws.Room
-import kz.aspan.doodle.repository.DefaultSetupRepository
 import kz.aspan.doodle.repository.SetupRepository
+import kz.aspan.doodle.util.Constants.MAX_ROOM_NAME_LENGTH
 import kz.aspan.doodle.util.Constants.MAX_USERNAME_LENGTH
+import kz.aspan.doodle.util.Constants.MIN_ROOM_NAME_LENGTH
 import kz.aspan.doodle.util.Constants.MIN_USERNAME_LENGTH
 import kz.aspan.doodle.util.DispatcherProvider
 import kz.aspan.doodle.util.Resource
@@ -39,7 +40,7 @@ class SetupViewModel @Inject constructor(
         object GetRoomEmptyEvent : SetupEvent()
 
         data class JoinRoomEvent(val roomName: String) : SetupEvent()
-        data class JoinRoomErrorEvent(val roomName: String) : SetupEvent()
+        data class JoinRoomErrorEvent(val error: String) : SetupEvent()
     }
 
     private val _setupEvent = MutableSharedFlow<SetupEvent>()
@@ -73,10 +74,10 @@ class SetupViewModel @Inject constructor(
                 trimmedRoomName.isEmpty() -> {
                     _setupEvent.emit(SetupEvent.InputEmptyError)
                 }
-                trimmedRoomName.length < MIN_USERNAME_LENGTH -> {
+                trimmedRoomName.length < MIN_ROOM_NAME_LENGTH  -> {
                     _setupEvent.emit(SetupEvent.InputTooShortError)
                 }
-                trimmedRoomName.length > MAX_USERNAME_LENGTH -> {
+                trimmedRoomName.length > MAX_ROOM_NAME_LENGTH  -> {
                     _setupEvent.emit(SetupEvent.InputTooLongError)
                 }
                 else -> {
@@ -111,7 +112,7 @@ class SetupViewModel @Inject constructor(
     fun joinRoom(username: String, roomName: String) {
         viewModelScope.launch(dispatchers.main) {
             val result = repository.joinRoom(username, roomName)
-            if (result is Resource.Success) {
+            if(result is Resource.Success) {
                 _setupEvent.emit(SetupEvent.JoinRoomEvent(roomName))
             } else {
                 _setupEvent.emit(SetupEvent.JoinRoomErrorEvent(result.message ?: return@launch))
