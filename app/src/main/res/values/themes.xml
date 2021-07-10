@@ -55,4 +55,9 @@
         <item name="strokeWidth">2dp</item>
         <item name="strokeColor">@color/black</item>
     </style>
+
+    <style name="DropDownStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxStrokeColor">@drawable/text_input_box_selector</item>
+        <item name="boxStrokeWidth">2dp</item>
+    </style>
 </resources>
