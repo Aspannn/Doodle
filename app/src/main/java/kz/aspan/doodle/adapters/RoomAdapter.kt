@@ -10,9 +10,10 @@ import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.databinding.ItemRoomBinding
 import javax.inject.Inject
 
-class RoomAdapter @Inject constructor() : RecyclerView.Adapter<RoomAdapter.RoomViewHolder>() {
+class RoomAdapter @Inject constructor() :
+    RecyclerView.Adapter<RoomAdapter.RoomViewHolder>() {
 
-    class RoomViewHolder(val binding: ItemRoomBinding) : RecyclerView.ViewHolder(binding.root)
+    class RoomViewHolder(val binding: ItemRoomBinding): RecyclerView.ViewHolder(binding.root)
 
     suspend fun updateDataset(newDataset: List<Room>) = withContext(Dispatchers.Default) {
         val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
@@ -31,15 +32,12 @@ class RoomAdapter @Inject constructor() : RecyclerView.Adapter<RoomAdapter.RoomV
             override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                 return rooms[oldItemPosition] == newDataset[newItemPosition]
             }
-
         })
-
         withContext(Dispatchers.Main) {
             rooms = newDataset
             diff.dispatchUpdatesTo(this@RoomAdapter)
         }
     }
-
 
     var rooms = listOf<Room>()
         private set
@@ -62,10 +60,14 @@ class RoomAdapter @Inject constructor() : RecyclerView.Adapter<RoomAdapter.RoomV
         val room = rooms[position]
         holder.binding.apply {
             tvRoomName.text = room.name
-            val playerCountText = "${room.playerCount}/${room.maxPlayers}"
+            val playerCountText = "${room.playerCount}/ ${room.maxPlayers}"
             tvRoomPersonCount.text = playerCountText
 
-
+            root.setOnClickListener {
+                onRoomClickListener?.let { click ->
+                    click(room)
+                }
+            }
         }
     }
 
