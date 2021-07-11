@@ -30,7 +30,7 @@ class SelectRoomViewModel @Inject constructor(
         object GetRoomLoadingEvent : SetupEvent()
         object GetRoomEmptyEvent : SetupEvent()
 
-        data class JoinRoomEvent(val roomName: String): SetupEvent()
+        data class JoinRoomEvent(val roomName: String) : SetupEvent()
         data class JoinRoomErrorEvent(val error: String) : SetupEvent()
     }
 
@@ -44,7 +44,7 @@ class SelectRoomViewModel @Inject constructor(
         _rooms.value = SetupEvent.GetRoomLoadingEvent
         viewModelScope.launch(dispatchers.main) {
             val result = repository.getRooms(searchQuery)
-            if(result is Resource.Success) {
+            if (result is Resource.Success) {
                 _rooms.value = SetupEvent.GetRoomEvent(result.data ?: return@launch)
             } else {
                 _setupEvent.emit(SetupEvent.GetRoomErrorEvent(result.message ?: return@launch))
@@ -55,7 +55,7 @@ class SelectRoomViewModel @Inject constructor(
     fun joinRoom(username: String, roomName: String) {
         viewModelScope.launch(dispatchers.main) {
             val result = repository.joinRoom(username, roomName)
-            if(result is Resource.Success) {
+            if (result is Resource.Success) {
                 _setupEvent.emit(SetupEvent.JoinRoomEvent(roomName))
             } else {
                 _setupEvent.emit(SetupEvent.JoinRoomErrorEvent(result.message ?: return@launch))

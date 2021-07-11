@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kz.aspan.doodle.data.remote.api.SetupApi
 import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.repository.DefaultSetupRepository
@@ -17,6 +18,8 @@ import kz.aspan.doodle.util.Constants.HTTP_BASE_URL
 import kz.aspan.doodle.util.Constants.HTTP_BASE_URL_LOCALHOST
 import kz.aspan.doodle.util.Constants.USE_LOCALHOST
 import kz.aspan.doodle.util.DispatcherProvider
+import kz.aspan.doodle.util.clientId
+import kz.aspan.doodle.util.dataStore
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -36,12 +39,27 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(clientId: String): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val url = chain.request().url.newBuilder()
+                    .addQueryParameter("client_id", clientId)
+                    .build()
+                val request = chain.request().newBuilder()
+                    .url(url)
+                    .build()
+                chain.proceed(request)
+            }
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
             .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideClientId(@ApplicationContext context: Context): String {
+        return runBlocking { context.dataStore.clientId() }
     }
 
     @Singleton
