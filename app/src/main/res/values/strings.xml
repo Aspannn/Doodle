@@ -31,4 +31,5 @@
     <string name="room_size">Room Size</string>
     <string name="error_room_name_too_short">The room name must be at least %d characters long.</string>
     <string name="error_room_name_too_long">The room name must not exceed %d characters.</string>
+    <string name="choose_your_word">You are next, choose your word!</string>
 </resources>
