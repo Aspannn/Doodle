@@ -6,11 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kz.aspan.doodle.R
+import kz.aspan.doodle.data.remote.ws.DrawingApi
 import kz.aspan.doodle.util.DispatcherProvider
 import javax.inject.Inject
 
 @HiltViewModel
 class DrawingViewModel @Inject constructor(
+    private val drawingApi: DrawingApi,
     private val dispatchers: DispatcherProvider,
     private val gson: Gson
 ) : ViewModel() {
