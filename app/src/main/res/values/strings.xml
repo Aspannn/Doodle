@@ -34,4 +34,5 @@
     <string name="choose_your_word">You are next, choose your word!</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
+    <string name="error_connection_failed">The connection failed.</string>
 </resources>

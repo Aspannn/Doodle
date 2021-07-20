@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kz.aspan.doodle.data.remote.api.SetupApi
 import kz.aspan.doodle.data.remote.ws.CustomGsonMessageAdapter
@@ -37,6 +38,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
+@ExperimentalCoroutinesApi
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModule {

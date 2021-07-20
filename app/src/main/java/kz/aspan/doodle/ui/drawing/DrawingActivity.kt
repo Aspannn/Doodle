@@ -10,14 +10,21 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.navArgs
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import com.tinder.scarlet.WebSocket
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kz.aspan.doodle.R
+import kz.aspan.doodle.data.remote.ws.models.GameError
+import kz.aspan.doodle.data.remote.ws.models.JoinRoomHandShake
 import kz.aspan.doodle.databinding.ActivityDrawingBinding
 import kz.aspan.doodle.util.Constants
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DrawingActivity : AppCompatActivity() {
@@ -25,6 +32,11 @@ class DrawingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDrawingBinding
 
     private val viewModel: DrawingViewModel by viewModels()
+
+    private val args: DrawingActivityArgs by navArgs()
+
+    @Inject
+    lateinit var clientId: String
 
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var rvPlayers: RecyclerView
@@ -34,6 +46,8 @@ class DrawingActivity : AppCompatActivity() {
         binding = ActivityDrawingBinding.inflate(layoutInflater)
         setContentView(binding.root)
         subscribeToUiStateUpdates()
+        listenToConnectionEvents()
+        listenToSocketEvents()
 
         toggle = ActionBarDrawerToggle(this, binding.root, R.string.open, R.string.close)
         toggle.syncState()
@@ -88,6 +102,58 @@ class DrawingActivity : AppCompatActivity() {
                         binding.drawingView.setThickness(40f)
                     }
                 }
+            }
+        }
+
+        lifecycleScope.launchWhenCreated {
+            viewModel.connectionProgressBarVisible.collect { isVisible ->
+                binding.connectionProgressBar.isVisible = isVisible
+            }
+        }
+        lifecycleScope.launchWhenCreated {
+            viewModel.chooseWordOverlayVisible.collect { isVisible ->
+                binding.chooseWordOverlay.isVisible = isVisible
+            }
+        }
+    }
+
+    private fun listenToSocketEvents() = lifecycleScope.launchWhenCreated {
+        viewModel.socketEvent.collect { event ->
+            when (event) {
+                is DrawingViewModel.SocketEvent.GameErrorEvent -> {
+                    when (event.data.errorType) {
+                        GameError.ERROR_ROOM_NOT_FOUND -> finish()
+                    }
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    private fun listenToConnectionEvents() = lifecycleScope.launchWhenCreated {
+        viewModel.connectionEvent.collect { event ->
+            when (event) {
+                is WebSocket.Event.OnConnectionOpened<*> -> {
+                    viewModel.sendBaseModel(
+                        JoinRoomHandShake(
+                            args.username, args.roomName, clientId
+                        )
+                    )
+                    viewModel.setConnectionProgressBarVisibility(false)
+                }
+                is WebSocket.Event.OnConnectionFailed -> {
+                    viewModel.setConnectionProgressBarVisibility(false)
+                    Snackbar.make(
+                        binding.root,
+                        R.string.error_connection_failed,
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                    event.throwable.printStackTrace()
+                }
+                is WebSocket.Event.OnConnectionClosed -> {
+                    viewModel.setConnectionProgressBarVisibility(false)
+                }
+                else -> Unit
             }
         }
     }
