@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.MotionEvent.*
 import android.view.View
+import kz.aspan.doodle.data.remote.ws.models.DrawData
 import kz.aspan.doodle.util.Constants
 import java.util.*
 import kotlin.math.abs
@@ -14,6 +15,7 @@ class DrawingView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
 ) : View(context, attrs) {
+
     private var viewWidth: Int? = null
     private var viewHeight: Int? = null
     private var bmp: Bitmap? = null
@@ -37,10 +39,22 @@ class DrawingView @JvmOverloads constructor(
     private var paths = Stack<PathData>()
     private var pathDataChangedListener: ((Stack<PathData>) -> Unit)? = null
 
+    var roomName: String? = null
+    var isUserDrawing = false
+        set(value) {
+            isEnabled = value
+            field = value
+        }
+
+    private var onDrawListener: ((DrawData) -> Unit)? = null
+
+    fun setOnDrawListener(listener: (DrawData) -> Unit) {
+        onDrawListener = listener
+    }
+
     fun setPathDataChangedListener(listener: (Stack<PathData>) -> Unit) {
         pathDataChangedListener = listener
     }
-
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -53,8 +67,8 @@ class DrawingView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         val initialColor = paint.color
-        val initialThickness = paint.strokeMiter
-        for (pathData in paths) {
+        val initialThickness = paint.strokeWidth
+        for(pathData in paths) {
             paint.apply {
                 color = pathData.color
                 strokeWidth = pathData.thickness
@@ -73,16 +87,23 @@ class DrawingView @JvmOverloads constructor(
         path.moveTo(x, y)
         curX = x
         curY = y
+        onDrawListener?.let { draw ->
+            val drawData = createDrawData(x, y, x, y, ACTION_DOWN)
+            draw(drawData)
+        }
         invalidate()
     }
 
     private fun movedTouch(toX: Float, toY: Float) {
         val dx = abs(toX - (curX ?: return))
         val dy = abs(toY - (curY ?: return))
-        if (dx >= smoothness || dy >= smoothness) {
+        if(dx >= smoothness || dy >= smoothness) {
             isDrawing = true
             path.quadTo(curX!!, curY!!, (curX!! + toX) / 2f, (curY!! + toY) / 2f)
-
+            onDrawListener?.let { draw ->
+                val drawData = createDrawData(curX!!, curY!!, toX, toY, ACTION_MOVE)
+                draw(drawData)
+            }
             curX = toX
             curY = toY
             invalidate()
@@ -96,22 +117,45 @@ class DrawingView @JvmOverloads constructor(
         pathDataChangedListener?.let { change ->
             change(paths)
         }
+        onDrawListener?.let { draw ->
+            val drawData = createDrawData(curX!!, curY!!, curX!!, curY!!, ACTION_UP)
+            draw(drawData)
+        }
         path = Path()
         invalidate()
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (!isEnabled) {
+        if(!isEnabled) {
             return false
         }
         val newX = event?.x
         val newY = event?.y
-        when (event?.action) {
+        when(event?.action) {
             ACTION_DOWN -> startedTouch(newX ?: return false, newY ?: return false)
             ACTION_MOVE -> movedTouch(newX ?: return false, newY ?: return false)
             ACTION_UP -> releasedTouch()
         }
         return true
+    }
+
+    private fun createDrawData(
+        fromX: Float,
+        fromY: Float,
+        toX: Float,
+        toY: Float,
+        motionEvent: Int
+    ): DrawData {
+        return DrawData(
+            roomName ?: throw IllegalStateException("Must set the roomName in drawing view"),
+            paint.color,
+            paint.strokeWidth,
+            fromX / viewWidth!!,
+            fromY / viewHeight!!,
+            toX / viewWidth!!,
+            toY / viewHeight!!,
+            motionEvent
+        )
     }
 
     fun setThickness(thickness: Float) {
@@ -126,7 +170,6 @@ class DrawingView @JvmOverloads constructor(
         canvas?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY)
         paths.clear()
     }
-
 
     data class PathData(val path: Path, val color: Int, val thickness: Float)
 }
