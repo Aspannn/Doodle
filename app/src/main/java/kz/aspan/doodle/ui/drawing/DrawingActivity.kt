@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
@@ -20,6 +22,7 @@ import com.tinder.scarlet.WebSocket
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kz.aspan.doodle.R
+import kz.aspan.doodle.data.remote.ws.models.DrawAction
 import kz.aspan.doodle.data.remote.ws.models.GameError
 import kz.aspan.doodle.data.remote.ws.models.JoinRoomHandShake
 import kz.aspan.doodle.databinding.ActivityDrawingBinding
@@ -52,6 +55,8 @@ class DrawingActivity : AppCompatActivity() {
         toggle = ActionBarDrawerToggle(this, binding.root, R.string.open, R.string.close)
         toggle.syncState()
 
+        binding.drawingView.roomName = args.roomName
+
         val header = layoutInflater.inflate(R.layout.nav_drawer_header, binding.navView)
         rvPlayers = header.findViewById(R.id.rvPlayers)
         binding.root.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
@@ -73,6 +78,12 @@ class DrawingActivity : AppCompatActivity() {
             override fun onDrawerStateChanged(newState: Int) = Unit
         })
 
+        binding.ibUndo.setOnClickListener {
+            if (binding.drawingView.isUserDrawing) {
+                binding.drawingView.undo()
+                viewModel.sendBaseModel(DrawAction(DrawAction.ACTION_UNDO))
+            }
+        }
 
         binding.colorGroup.setOnCheckedChangeListener { _, checkedId ->
             viewModel.checkRadioButton(checkedId)
@@ -126,6 +137,25 @@ class DrawingActivity : AppCompatActivity() {
     private fun listenToSocketEvents() = lifecycleScope.launchWhenCreated {
         viewModel.socketEvent.collect { event ->
             when (event) {
+                is DrawingViewModel.SocketEvent.DrawDataEvent -> {
+                    val drawData = event.data
+                    if (!binding.drawingView.isUserDrawing) {
+                        when (drawData.motionEvent) {
+                            MotionEvent.ACTION_DOWN -> binding.drawingView.startedTouchExternally(
+                                drawData
+                            )
+                            MotionEvent.ACTION_MOVE -> binding.drawingView.movedTouchExternally(
+                                drawData
+                            )
+                            MotionEvent.ACTION_UP -> binding.drawingView.releasedTouchExternally(
+                                drawData
+                            )
+                        }
+                    }
+                }
+                is DrawingViewModel.SocketEvent.UndoEvent -> {
+                    binding.drawingView.undo()
+                }
                 is DrawingViewModel.SocketEvent.GameErrorEvent -> {
                     when (event.data.errorType) {
                         GameError.ERROR_ROOM_NOT_FOUND -> finish()
