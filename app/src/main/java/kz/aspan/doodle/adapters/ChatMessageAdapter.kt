@@ -18,8 +18,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private const val VIEW_TYPE_INCOMING_MESSAGE = 0
-private const val VIEW_TYPE_OUTGOING_MESSAGE = 0
-private const val VIEW_TYPE_ANNOUNCEMENT = 0
+private const val VIEW_TYPE_OUTGOING_MESSAGE = 1
+private const val VIEW_TYPE_ANNOUNCEMENT = 2
 
 class ChatMessageAdapter(
     private val username: String
