@@ -20,7 +20,6 @@ import kz.aspan.doodle.data.remote.api.SetupApi
 import kz.aspan.doodle.data.remote.ws.CustomGsonMessageAdapter
 import kz.aspan.doodle.data.remote.ws.DrawingApi
 import kz.aspan.doodle.data.remote.ws.FlowStreamAdapter
-import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.repository.DefaultSetupRepository
 import kz.aspan.doodle.repository.SetupRepository
 import kz.aspan.doodle.util.Constants.HTTP_BASE_URL
