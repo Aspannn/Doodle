@@ -3,25 +3,26 @@ package kz.aspan.doodle.ui.drawing
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.tinder.scarlet.WebSocket
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kz.aspan.doodle.R
+import kz.aspan.doodle.adapters.ChatMessageAdapter
+import kz.aspan.doodle.data.remote.ws.models.ChatMessage
 import kz.aspan.doodle.data.remote.ws.models.DrawAction
 import kz.aspan.doodle.data.remote.ws.models.GameError
 import kz.aspan.doodle.data.remote.ws.models.JoinRoomHandShake
@@ -44,6 +45,8 @@ class DrawingActivity : AppCompatActivity() {
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var rvPlayers: RecyclerView
 
+    private lateinit var chatMessageAdapter: ChatMessageAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDrawingBinding.inflate(layoutInflater)
@@ -51,6 +54,7 @@ class DrawingActivity : AppCompatActivity() {
         subscribeToUiStateUpdates()
         listenToConnectionEvents()
         listenToSocketEvents()
+        setUpRecyclerView()
 
         toggle = ActionBarDrawerToggle(this, binding.root, R.string.open, R.string.close)
         toggle.syncState()
@@ -192,6 +196,12 @@ class DrawingActivity : AppCompatActivity() {
                 else -> Unit
             }
         }
+    }
+
+    private fun setUpRecyclerView() = binding.rvChat.apply {
+        chatMessageAdapter = ChatMessageAdapter(args.username)
+        adapter = chatMessageAdapter
+        layoutManager = LinearLayoutManager(this@DrawingActivity)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
