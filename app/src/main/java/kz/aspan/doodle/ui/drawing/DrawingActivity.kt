@@ -61,7 +61,7 @@ class DrawingActivity : AppCompatActivity() {
         toggle.syncState()
 
         binding.drawingView.roomName = args.roomName
-        if (args.username == "test"){
+        if (args.username == "test") {
             binding.drawingView.isUserDrawing = true
         }
 
@@ -136,6 +136,33 @@ class DrawingActivity : AppCompatActivity() {
                     updateChatMessageList(chat)
             }
         }
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.newWords.collect {
+                val newWords = it.newWords
+                if (newWords.isEmpty()) {
+                    return@collect
+                }
+                binding.apply {
+                    btnFirstWord.text = newWords[0]
+                    btnSecondWord.text = newWords[1]
+                    btnThirdWord.text = newWords[2]
+
+                    btnFirstWord.setOnClickListener {
+                        viewModel.chooseWord(newWords[0], args.roomName)
+                        viewModel.setChooseWordOverlayVisibility(false)
+                    }
+                    btnSecondWord.setOnClickListener {
+                        viewModel.chooseWord(newWords[1], args.roomName)
+                        viewModel.setChooseWordOverlayVisibility(false)
+                    }
+                    btnThirdWord.setOnClickListener {
+                        viewModel.chooseWord(newWords[2], args.roomName)
+                        viewModel.setChooseWordOverlayVisibility(false)
+                    }
+                }
+            }
+        }
         lifecycleScope.launchWhenCreated {
             viewModel.selectedColorButtonId.collect { id ->
                 binding.colorGroup.check(id)
@@ -186,6 +213,10 @@ class DrawingActivity : AppCompatActivity() {
                             )
                         }
                     }
+                }
+                is DrawingViewModel.SocketEvent.ChosenWordEvent -> {
+                    binding.tvCurWord.text = event.data.chosenWord
+                    binding.ibUndo.isEnabled = false
                 }
                 is DrawingViewModel.SocketEvent.ChatMessageEvent -> {
                     addChatObjectToRecyclerView(event.data)
