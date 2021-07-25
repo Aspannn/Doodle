@@ -15,6 +15,7 @@ import kz.aspan.doodle.util.Constants.MIN_USERNAME_LENGTH
 import kz.aspan.doodle.util.navigateSafely
 import kz.aspan.doodle.util.snackbar
 import kotlinx.coroutines.flow.collect
+import kz.aspan.doodle.util.hideKeyBoard
 
 @AndroidEntryPoint
 class UsernameFragment : Fragment(R.layout.fragment_username) {
@@ -35,6 +36,7 @@ class UsernameFragment : Fragment(R.layout.fragment_username) {
             viewModel.validateUsernameAndNavigateToSelectRoom(
                 binding.etUsername.text.toString()
             )
+            requireActivity().hideKeyBoard(binding.root)
         }
     }
 

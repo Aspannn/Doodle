@@ -19,6 +19,7 @@ import kz.aspan.doodle.util.navigateSafely
 import kz.aspan.doodle.util.snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
+import kz.aspan.doodle.util.hideKeyBoard
 
 @AndroidEntryPoint
 class CreateRoomFragment : Fragment(R.layout.fragment_create_room) {
@@ -45,6 +46,7 @@ class CreateRoomFragment : Fragment(R.layout.fragment_create_room) {
                     binding.tvMaxPerson.text.toString().toInt()
                 )
             )
+            requireActivity().hideKeyBoard(binding.root)
         }
     }
 

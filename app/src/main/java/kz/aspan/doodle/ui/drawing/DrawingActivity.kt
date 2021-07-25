@@ -25,8 +25,8 @@ import kz.aspan.doodle.R
 import kz.aspan.doodle.adapters.ChatMessageAdapter
 import kz.aspan.doodle.data.remote.ws.models.*
 import kz.aspan.doodle.databinding.ActivityDrawingBinding
-import kz.aspan.doodle.ui.views.DrawingView
 import kz.aspan.doodle.util.Constants
+import kz.aspan.doodle.util.hideKeyBoard
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -61,6 +61,9 @@ class DrawingActivity : AppCompatActivity() {
         toggle.syncState()
 
         binding.drawingView.roomName = args.roomName
+        if (args.username == "test"){
+            binding.drawingView.isUserDrawing = true
+        }
 
         chatMessageAdapter.stateRestorationPolicy =
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
@@ -100,6 +103,7 @@ class DrawingActivity : AppCompatActivity() {
                 )
             )
             binding.etMessage.text?.clear()
+            hideKeyBoard(binding.root)
         }
 
         binding.ibUndo.setOnClickListener {
