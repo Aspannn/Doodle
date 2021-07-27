@@ -35,4 +35,7 @@
     <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="error_connection_failed">The connection failed.</string>
+    <string name="waiting_for_players">Waiting for players...</string>
+    <string name="waiting_for_start">Waiting for start...</string>
+    <string name="player_is_drawing">%s is choosing a word...</string>
 </resources>
