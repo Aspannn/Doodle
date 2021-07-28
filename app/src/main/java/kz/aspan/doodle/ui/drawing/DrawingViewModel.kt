@@ -16,8 +16,10 @@ import kz.aspan.doodle.data.remote.ws.DrawingApi
 import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.data.remote.ws.models.*
 import kz.aspan.doodle.data.remote.ws.models.DrawAction.Companion.ACTION_UNDO
+import kz.aspan.doodle.ui.views.DrawingView
 import kz.aspan.doodle.util.CoroutineTimer
 import kz.aspan.doodle.util.DispatcherProvider
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,6 +41,9 @@ class DrawingViewModel @Inject constructor(
         object UndoEvent : SocketEvent()
     }
 
+    private val _pathData = MutableStateFlow(Stack<DrawingView.PathData>())
+    val pathData = _pathData
+
     private val _newWords = MutableStateFlow(NewWords(listOf()))
     val newWords: StateFlow<NewWords> = _newWords
 
@@ -47,6 +52,9 @@ class DrawingViewModel @Inject constructor(
 
     private val _phaseTime = MutableStateFlow(0L)
     val phaseTime = _phaseTime
+
+    private val _gameState = MutableStateFlow(GameState("", ""))
+    val gameState = _gameState
 
     private val _chat = MutableStateFlow<List<BaseModel>>(listOf())
     val chat: StateFlow<List<BaseModel>> = _chat
@@ -85,6 +93,10 @@ class DrawingViewModel @Inject constructor(
         timerJob?.cancel()
     }
 
+    fun setPathData(stack: Stack<DrawingView.PathData>) {
+        _pathData.value = stack
+    }
+
     fun setChooseWordOverlayVisibility(isVisible: Boolean) {
         _chooseWordOverlayVisible.value = isVisible
     }
@@ -116,6 +128,10 @@ class DrawingViewModel @Inject constructor(
                     }
                     is Announcement -> {
                         socketEventChannel.send(SocketEvent.AnnouncementEvent(data))
+                    }
+                    is GameState -> {
+                        _gameState.value = data
+                        socketEventChannel.send(SocketEvent.GameStateEvent(data))
                     }
                     is NewWords -> {
                         _newWords.value = data

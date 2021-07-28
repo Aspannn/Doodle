@@ -62,9 +62,9 @@ class DrawingActivity : AppCompatActivity() {
         toggle.syncState()
 
         binding.drawingView.roomName = args.roomName
-        if (args.username == "test") {
-            binding.drawingView.isUserDrawing = true
-        }
+//        if (args.username == "test") {
+//            binding.drawingView.isUserDrawing = true
+//        }
 
         chatMessageAdapter.stateRestorationPolicy =
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
@@ -114,6 +114,10 @@ class DrawingActivity : AppCompatActivity() {
             }
         }
 
+        binding.drawingView.setPathDataChangedListener {
+            viewModel.setPathData(it)
+        }
+
         binding.colorGroup.setOnCheckedChangeListener { _, checkedId ->
             viewModel.checkRadioButton(checkedId)
         }
@@ -122,6 +126,19 @@ class DrawingActivity : AppCompatActivity() {
             if (binding.drawingView.isUserDrawing) {
                 viewModel.sendBaseModel(it)
             }
+        }
+    }
+
+    private fun setColorGroupVisibility(isVisible: Boolean) {
+        binding.colorGroup.isVisible = isVisible
+        binding.ibUndo.isVisible = isVisible
+    }
+
+    private fun setMessageInputVisibility(isVisible: Boolean) {
+        binding.apply {
+            tilMessage.isVisible = isVisible
+            ibSend.isVisible = isVisible
+            ibClearText.isVisible = isVisible
         }
     }
 
@@ -181,6 +198,20 @@ class DrawingActivity : AppCompatActivity() {
                         binding.drawingView.setColor(Color.WHITE)
                         binding.drawingView.setThickness(40f)
                     }
+                }
+            }
+        }
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.gameState.collect { gameState ->
+                binding.apply {
+                    tvCurWord.text = gameState.word
+                    val isUserDrawing = gameState.drawingPlayer == args.username
+                    setColorGroupVisibility(isUserDrawing)
+                    setMessageInputVisibility(!isUserDrawing)
+                    drawingView.isUserDrawing = isUserDrawing
+                    ibMic.isVisible = !isUserDrawing
+                    drawingView.isEnabled = isUserDrawing
                 }
             }
         }
@@ -270,6 +301,9 @@ class DrawingActivity : AppCompatActivity() {
                             )
                         }
                     }
+                }
+                is DrawingViewModel.SocketEvent.GameStateEvent -> {
+                    binding.drawingView.clear()
                 }
                 is DrawingViewModel.SocketEvent.ChosenWordEvent -> {
                     binding.tvCurWord.text = event.data.chosenWord
