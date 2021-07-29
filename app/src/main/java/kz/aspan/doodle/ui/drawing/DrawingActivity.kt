@@ -23,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kz.aspan.doodle.R
 import kz.aspan.doodle.adapters.ChatMessageAdapter
+import kz.aspan.doodle.adapters.PlayerAdapter
 import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.data.remote.ws.models.*
 import kz.aspan.doodle.databinding.ActivityDrawingBinding
@@ -44,6 +45,10 @@ class DrawingActivity : AppCompatActivity() {
 
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var rvPlayers: RecyclerView
+
+    @Inject
+    private lateinit var playerAdapter: PlayerAdapter
+
 
     private lateinit var chatMessageAdapter: ChatMessageAdapter
 
@@ -72,6 +77,11 @@ class DrawingActivity : AppCompatActivity() {
         val header = layoutInflater.inflate(R.layout.nav_drawer_header, binding.navView)
         rvPlayers = header.findViewById(R.id.rvPlayers)
         binding.root.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+
+        rvPlayers.apply {
+            adapter = playerAdapter
+            layoutManager = LinearLayoutManager(this@DrawingActivity)
+        }
 
         binding.ibPlayers.setOnClickListener {
             binding.root.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
