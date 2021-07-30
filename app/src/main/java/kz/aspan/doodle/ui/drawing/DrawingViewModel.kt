@@ -4,6 +4,7 @@ import androidx.core.graphics.rotationMatrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.tinder.scarlet.WebSocket
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -17,6 +18,8 @@ import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.data.remote.ws.models.*
 import kz.aspan.doodle.data.remote.ws.models.DrawAction.Companion.ACTION_UNDO
 import kz.aspan.doodle.ui.views.DrawingView
+import kz.aspan.doodle.util.Constants.TYPE_DRAW_ACTION
+import kz.aspan.doodle.util.Constants.TYPE_DRAW_DATA
 import kz.aspan.doodle.util.CoroutineTimer
 import kz.aspan.doodle.util.DispatcherProvider
 import java.util.*
@@ -37,12 +40,15 @@ class DrawingViewModel @Inject constructor(
         data class NewWordsEvent(val data: NewWords) : SocketEvent()
         data class ChosenWordEvent(val data: ChosenWord) : SocketEvent()
         data class GameErrorEvent(val data: GameError) : SocketEvent()
-        data class RoundDrawInfoEvent(val data: RoundDrawInfo) : SocketEvent()
+        data class RoundDrawInfoEvent(val data: List<BaseModel>) : SocketEvent()
         object UndoEvent : SocketEvent()
     }
 
     private val _pathData = MutableStateFlow(Stack<DrawingView.PathData>())
     val pathData = _pathData
+
+    private val _players = MutableStateFlow<List<PlayerData>>(listOf())
+    val players = _players
 
     private val _newWords = MutableStateFlow(NewWords(listOf()))
     val newWords: StateFlow<NewWords> = _newWords
@@ -126,12 +132,28 @@ class DrawingViewModel @Inject constructor(
                     is ChosenWord -> {
                         socketEventChannel.send(SocketEvent.ChosenWordEvent(data))
                     }
+                    is RoundDrawInfo -> {
+                        val drawActions = mutableListOf<BaseModel>()
+                        data.data.forEach { drawAction ->
+                            val jsonObject = JsonParser.parseString(drawAction).asJsonObject
+                            val type = when (jsonObject.get("type").asString) {
+                                TYPE_DRAW_DATA -> DrawData::class.java
+                                TYPE_DRAW_ACTION -> DrawAction::class.java
+                                else -> BaseModel::class.java
+                            }
+                            drawActions.add(gson.fromJson(drawAction, type))
+                        }
+                        socketEventChannel.send(SocketEvent.RoundDrawInfoEvent(drawActions))
+                    }
                     is Announcement -> {
                         socketEventChannel.send(SocketEvent.AnnouncementEvent(data))
                     }
                     is GameState -> {
                         _gameState.value = data
                         socketEventChannel.send(SocketEvent.GameStateEvent(data))
+                    }
+                    is PlayersList -> {
+                        _players.value = data.players
                     }
                     is NewWords -> {
                         _newWords.value = data
