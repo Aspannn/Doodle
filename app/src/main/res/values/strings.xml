@@ -38,4 +38,10 @@
     <string name="waiting_for_players">Waiting for players...</string>
     <string name="waiting_for_start">Waiting for start...</string>
     <string name="player_is_drawing">%s is choosing a word...</string>
+    <string name="dialog_leave_message">This will disconnect you from the game.</string>
+    <string name="dialog_leave_title">Do you really want to close the app?</string>
+    <string name="dialog_yes">yes</string>
+    <string name="dialog_leave_no">no</string>
+    <string name="rationale_record_audio">To enable speech to text, you need to permit recording audio.</string>
+    <string name="speech_to_text_info">Simply speak into your microphone to quickly guess words. To disable this function, press on the microphone icon again.</string>
 </resources>

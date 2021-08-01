@@ -1,11 +1,13 @@
 package kz.aspan.doodle.ui.drawing
 
+import android.Manifest
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.content.ContextCompat
@@ -28,13 +30,19 @@ import kz.aspan.doodle.adapters.PlayerAdapter
 import kz.aspan.doodle.data.remote.ws.Room
 import kz.aspan.doodle.data.remote.ws.models.*
 import kz.aspan.doodle.databinding.ActivityDrawingBinding
+import kz.aspan.doodle.ui.dialogs.LeaveDialog
 import kz.aspan.doodle.ui.views.DrawingView
 import kz.aspan.doodle.util.Constants
 import kz.aspan.doodle.util.hideKeyBoard
+import pub.devrel.easypermissions.AppSettingsDialog
+import pub.devrel.easypermissions.EasyPermissions
 import javax.inject.Inject
 
+private const val REQUEST_CODE_AUDIO = 1;
+
 @AndroidEntryPoint
-class DrawingActivity : AppCompatActivity(), LifecycleObserver {
+class DrawingActivity : AppCompatActivity(), LifecycleObserver,
+    EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityDrawingBinding
 
@@ -153,6 +161,41 @@ class DrawingActivity : AppCompatActivity(), LifecycleObserver {
             tilMessage.isVisible = isVisible
             ibSend.isVisible = isVisible
             ibClearText.isVisible = isVisible
+        }
+    }
+
+    private fun hasRecordAudioPermission() = EasyPermissions.hasPermissions(
+        this,
+        Manifest.permission.RECORD_AUDIO
+    )
+
+    private fun requestRecordAudioPermission() {
+        EasyPermissions.requestPermissions(
+            this,
+            getString(R.string.rationale_record_audio),
+            REQUEST_CODE_AUDIO,
+            Manifest.permission.RECORD_AUDIO
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        if (requestCode == REQUEST_CODE_AUDIO) {
+            Toast.makeText(this, R.string.speech_to_text_info, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            AppSettingsDialog.Builder(this).build().show()
         }
     }
 
@@ -423,5 +466,14 @@ class DrawingActivity : AppCompatActivity(), LifecycleObserver {
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     private fun onAppInBackground() {
         viewModel.disconnect()
+    }
+
+    override fun onBackPressed() {
+        LeaveDialog().apply {
+            setPositiveClickListener {
+                viewModel.disconnect()
+                finish()
+            }
+        }.show(supportFragmentManager, null)
     }
 }
