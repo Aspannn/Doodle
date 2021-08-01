@@ -74,6 +74,9 @@ class DrawingViewModel @Inject constructor(
     private val _chooseWordOverlayVisible = MutableStateFlow(false)
     val chooseWordOverlayVisible = _chooseWordOverlayVisible
 
+    private val _speechToTextEnabled = MutableStateFlow(false)
+    val speechToTextEnabled = _speechToTextEnabled
+
     private val connectionEventChannel = Channel<WebSocket.Event>()
     val connectionEvent = connectionEventChannel.receiveAsFlow().flowOn(dispatchers.io)
 
@@ -93,6 +96,14 @@ class DrawingViewModel @Inject constructor(
         timerJob = timer.timeAndEmit(duration, viewModelScope) {
             _phaseTime.value = it
         }
+    }
+
+    fun startListening() {
+        _speechToTextEnabled.value = true;
+    }
+
+    fun stopListening() {
+        _speechToTextEnabled.value = false
     }
 
     fun cancelTimer() {
