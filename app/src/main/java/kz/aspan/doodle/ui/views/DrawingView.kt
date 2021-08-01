@@ -60,6 +60,10 @@ class DrawingView @JvmOverloads constructor(
         pathDataChangedListener = listener
     }
 
+    fun setPaths(pathData: Stack<PathData>) {
+        this.paths = pathData
+    }
+
     fun update(drawActions: List<BaseModel>) {
         drawActions.forEach { drawAction ->
             when (drawAction) {

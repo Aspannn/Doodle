@@ -294,6 +294,12 @@ class DrawingActivity : AppCompatActivity(), LifecycleObserver,
         }
 
         lifecycleScope.launchWhenStarted {
+            viewModel.pathData.collect { pathData ->
+                binding.drawingView.setPaths(pathData)
+            }
+        }
+
+        lifecycleScope.launchWhenStarted {
             viewModel.chat.collect { chat ->
                 if (chatMessageAdapter.chatObjects.isEmpty())
                     updateChatMessageList(chat)
@@ -368,7 +374,7 @@ class DrawingActivity : AppCompatActivity(), LifecycleObserver,
         }
 
         lifecycleScope.launchWhenStarted {
-            viewModel.phaseTime.collect{ time ->
+            viewModel.phaseTime.collect { time ->
                 binding.roundTimerProgressBar.progress = time.toInt()
                 binding.tvRemainingTimeChooseWord.text = (time / 1000L).toString()
             }

@@ -1,6 +1,5 @@
 package kz.aspan.doodle.ui.drawing
 
-import androidx.core.graphics.rotationMatrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
